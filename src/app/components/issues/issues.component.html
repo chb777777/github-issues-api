@@ -1,0 +1,65 @@
+<div fxLayout="row" fxLayoutAlign="center">
+  <div fxFlex="70" fxFlex.xs="100" fxLayout="column" fxLayoutGap="30px">
+    <div fxLayout="row">
+      <mat-card fxFlex="100">
+        <mat-card-header>
+          <mat-card-title>Angular repository issues for last 7 days</mat-card-title>
+        </mat-card-header>
+        <mat-card-content fxLayout="row" fxLayoutGap="30px" fxLayoutAlign="center">
+          <form fxFlex="70" [formGroup]="form" (submit)="search()">
+            <mat-form-field class="search-form-field">
+              <input formControlName="searchValue" matInput placeholder="Search issues">
+            </mat-form-field>
+          </form>
+          <button (click)="search()" color="primary" mat-raised-button>Search <mat-icon>search</mat-icon></button>
+        </mat-card-content>
+        <mat-card-actions>
+          <mat-progress-bar *ngIf="loading$ | async" mode="indeterminate"></mat-progress-bar>
+        </mat-card-actions>
+      </mat-card>
+
+    </div>
+    <div fxLayout="column" fxLayoutGap="20px">
+      <h5 *ngIf="!(loading$ | async)">Total count: {{totalCount}}</h5>
+      <mat-card class="mat-elevation-z15" *ngFor="let item of issues" @fadeIn>
+        <mat-card-header>
+          <img matTooltip="{{item.user.login}}" mat-card-avatar [src]="item.user.avatar_url">
+          <mat-card-title>
+            <mat-icon matTooltip="Open issue" *ngIf="item.state === 'open'" class="state-open">report</mat-icon>
+            <mat-icon matTooltip="Closed issue" *ngIf="item.state === 'closed'" class="state-closed">report</mat-icon>
+            {{item.title}}
+          </mat-card-title>
+          <mat-card-subtitle>{{item.updated_at | date: 'MMM d, y, h:mm a'}}</mat-card-subtitle>
+          <mat-card-subtitle>Comments: {{item.comments}}</mat-card-subtitle>
+          <span fxFlex></span>
+
+          <a mat-icon-button [href]="item.html_url" target="_blank">
+            <mat-icon matTooltip="View on GitHub">call_made</mat-icon>
+          </a>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="issue-body" [innerHTML]="item.body_html"> </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <mat-chip-list>
+            <mat-chip disableRipple="true" selectable="false" *ngFor="let label of item.labels"
+              [ngStyle]="{'background-color': '#' + label.color}">
+              {{label.name}}
+            </mat-chip>
+          </mat-chip-list>
+        </mat-card-actions>
+      </mat-card>
+      <!-- Only the first 1000 search results are available -->
+      <button [disabled]="loading$ | async"
+        *ngIf="((issues.length < 1000) && (issues.length < totalCount) && (page < 35)) else noMore" mat-raised-button
+        color="primary" (click)=loadMore()>Load more
+        <mat-progress-bar *ngIf="loading$ | async" mode="indeterminate"></mat-progress-bar>
+      </button>
+      <ng-template #noMore>
+        <h4 *ngIf="!(loading$ | async)">No more results</h4>
+      </ng-template>
+      <br />
+    </div>
+
+  </div>
+</div>
